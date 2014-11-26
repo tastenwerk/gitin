@@ -61,6 +61,82 @@ describe GitFile do
 
     end
 
+    context "get repository status" do
+
+      it { expect( MyFile.clean? ).to be false }
+
+      it { expect( MyFile.changes.size ).to eq(1) }
+
+    end
+
+    context "commit repository" do
+
+      it { expect( MyFile.commit('msg') ).to include('master')}
+
+      it { expect( MyFile.clean? ).to be true }
+
+      it { expect( MyFile.changes.size ).to eq(0) }
+
+    end
+
+    context "list repository's files" do
+
+      it { expect( MyFile.list ).to be_a(Array) }
+
+      it { expect( MyFile.list.size ).to eq(1) }
+
+      it { expect( MyFile.list.first ).to be_a(MyFile) }
+
+      it { expect( MyFile.list.first.filename).to eq('test.txt') }
+
+    end
+
+    context "create a directory" do
+
+      let(:dir){ MyFile.create( :directory, filename: 'testdir' ) }
+
+      it { expect( dir.directory? ).to be true }
+
+      it { expect( MyFile.list.size ).to eq(2) }
+
+      it { expect( MyFile.list.last.directory? ).to be true }
+
+    end
+
+    context "commit changes" do
+
+      it { expect( MyFile.changes.size ).to eq(1) }
+
+      it { expect( MyFile.changes.first.type ).to eq("A") }
+
+      it { expect( MyFile.changes.first.path ).to eq("testdir/.gitkeep") }
+
+      it { expect( MyFile.commit('msg') ).to include('master')}
+
+      it { expect( MyFile.changes.size ).to eq(0) }
+
+    end
+
+    context "add file to directory" do
+
+      let(:file){ MyFile.create( filename: 'test2.txt', directory: 'testdir' ) }
+
+      it { expect( file.path ).to eq('testdir/test2.txt') }
+
+    end
+
+    context "list directory content" do
+
+      let(:dir) { MyFile.findOne("testdir") }
+
+      it { expect( dir.content ).to be_a(Array) }
+
+      it { expect( dir.content.first ).to be_a(MyFile) }
+
+      it { expect( dir.content.first.filename ).to eq('test2.txt') }
+
+    end
+
   end
 
 end

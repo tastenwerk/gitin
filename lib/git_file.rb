@@ -6,7 +6,7 @@ require 'git'
 module GitFile
 
   def self.included(base)
-    attr_accessor :filename, :content, :parent
+    attr_accessor :filename, :parent, :size, :directory
     base.extend ClassMethods
   end
 
@@ -32,14 +32,61 @@ module GitFile
       @@root_path
     end
 
-    def create( attributes )
-      f = new( attributes )
+    def create( type, attributes=nil )
+      f = new( type, attributes )
       f.save
       f
     end
 
     def git
       @@git
+    end
+
+    def changes
+      arr = []
+      @@git.status.each{ |f| arr << f if f.type == 'A' }
+      arr
+    end
+
+    def clean?
+      changes.size == 0
+    end
+  
+    def commit( msg )
+      git.commit msg
+    end
+
+    def init( file, path )
+      fn = File.join( path, file )
+      filebase = File::basename(file)
+      cleanpath = path.sub(@@root_path,'')
+      if File.directory?(fn)
+        return new( :directory, filename: filebase, path: cleanpath )
+      end
+      new( filename: filebase, path: cleanpath, content: File.open(fn,'r').read, size: File.size(fn) )
+    end
+
+    def list(path='')
+      path = File.join( @@root_path, path )
+      result = []
+      Dir.foreach(path) do |file|
+        next if file == '.' || file == '..' || file == '.git' || file == '.gitignore' || file == '.gitkeep'
+        result << init( file, path )
+      end
+      result
+    end
+
+    def find( path )
+      result = []
+      Dir.glob( "#{@@root_path}/**/#{path}") do |file|
+        result << init( file, '' )
+      end
+      result
+    end
+
+    def findOne( path )
+      result = find( path )
+      result.first
     end
 
     private
@@ -58,24 +105,48 @@ module GitFile
       @@git = Git.init @@root_path
       return if @@git.branches.size > 0
       @@g_config.each_pair{ |k,v| @@git.config k, v }
-      File.open File.join( @@root_path,'.gitignore'), 'w'
-      @@git.add
+      gitignore = File.join( @@root_path,'.gitignore')
+      File.open gitignore, 'w'
+      @@git.add gitignore
       @@git.commit 'initial commit'
     end
 
   end
 
-  def initialize(attributes)
+  def initialize(type,attributes=nil)
+    unless attributes
+      attributes = type
+      type = nil
+    end
     raise StandardError, "filename must be given" unless attributes.has_key?(:filename)
     raise StandardError, "filename can't be blank" if attributes[:filename].empty?
     @filename = attributes[:filename]
-    @content = attributes[:content] if attributes.has_key?(:content)
+    @directory = ''
+    if attributes.has_key?(:directory)
+      @directory = attributes[:directory] 
+      if !File.exists?( File::join( self.class.git_root, @directory ) ) ||
+        !File.directory?( File::join( self.class.git_root, @directory ) )
+        raise StandardError, "not a directory #{@directory}"
+      end
+    end
+    @content = attributes.has_key?(:content) ? attributes[:content] : nil
+    @type = type.to_s || File::extname(@filename).sub('.','')
+  end
+
+  def directory?
+    @type == 'directory'
   end
 
   def save
     raise StandardError, "missing root (set with git_root in #{self.name})" unless self.class.git_root
-    File.open(absolute_path, 'w'){ |f| f.write content }
-    self.class.git.add absolute_path
+    if @type == 'directory'
+      FileUtils.mkdir( absolute_path )
+      File.open("#{absolute_path}/.gitkeep", 'w')
+      self.class.git.add "#{absolute_path}/.gitkeep"
+    else
+      File.open(absolute_path, 'w'){ |f| f.write content }
+      self.class.git.add absolute_path
+    end
   end
 
   def save!
@@ -86,19 +157,21 @@ module GitFile
     self.class.git.commit msg
   end
 
-  def relative_path
-    File.join( path, filename )
+  def path
+    File.join( directory, filename )
   end
 
   def absolute_path
-    File.join( self.class.git_root, relative_path )
+    File.join( self.class.git_root, path )
   end
 
-  def children
+  def content=(content)
+    @content = content unless directory?
   end
 
-  def path
-    @path || ''
+  def content
+    return @content unless directory?
+    self.class.list( path )
   end
 
 end
