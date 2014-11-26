@@ -123,6 +123,8 @@ describe GitFile do
 
       it { expect( file.path ).to eq('testdir/test2.txt') }
 
+      it { expect( file.commit('msg') ).to be_a(String) }
+
     end
 
     context "list directory content" do
@@ -134,6 +136,42 @@ describe GitFile do
       it { expect( dir.content.first ).to be_a(MyFile) }
 
       it { expect( dir.content.first.filename ).to eq('test2.txt') }
+
+    end
+
+    context "find a file in directory" do
+
+      it { expect( MyFile.findOne('testdir/test2.txt') ).to be_a(MyFile) }
+
+      it { expect( MyFile.findOne('testdir/test2.txt').filename ).to eq('test2.txt') }
+
+      it { expect( MyFile.findOne('testdir/test2.txt').path ).to eq('testdir/test2.txt') }
+
+    end
+
+    context "delete a file from directory" do
+
+      before(:all){ @file = MyFile.findOne('testdir/test2.txt') }
+
+      it { expect( @file ).to be_a(MyFile) }
+
+      it { expect( @file.deleted? ).to be false }
+
+      it { expect( MyFile.clean? ).to be true }
+
+      it { expect( @file.delete ).to be true }
+
+      it { expect( @file.deleted? ).to be true }
+
+      it { expect( MyFile.findOne('testdir/test2.txt') ).to be nil }
+
+      it { expect( MyFile.clean? ).to be false }
+
+      it { expect( MyFile.changes.size ).to eq(1) }
+
+      it { expect( MyFile.changes.first.type ).to eq("D") }
+
+      it { expect( MyFile.changes.first.path ).to eq(@file.path) }
 
     end
 

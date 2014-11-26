@@ -44,7 +44,7 @@ module GitFile
 
     def changes
       arr = []
-      @@git.status.each{ |f| arr << f if f.type == 'A' }
+      @@git.status.each{ |f| arr << f if f.type =~ /A|D/ }
       arr
     end
 
@@ -58,12 +58,11 @@ module GitFile
 
     def init( file, path )
       fn = File.join( path, file )
-      filebase = File::basename(file)
       cleanpath = path.sub(@@root_path,'')
       if File.directory?(fn)
-        return new( :directory, filename: filebase, path: cleanpath )
+        return new( :directory, filename: file, path: cleanpath )
       end
-      new( filename: filebase, path: cleanpath, content: File.open(fn,'r').read, size: File.size(fn) )
+      new( filename: file, directory: cleanpath, content: File.open(fn,'r').read, size: File.size(fn) )
     end
 
     def list(path='')
@@ -79,7 +78,7 @@ module GitFile
     def find( path )
       result = []
       Dir.glob( "#{@@root_path}/**/#{path}") do |file|
-        result << init( file, '' )
+        result << init( File::basename(file), File::dirname(file) )
       end
       result
     end
@@ -158,7 +157,7 @@ module GitFile
   end
 
   def path
-    File.join( directory, filename )
+    File.join( directory, filename ).sub(/^\//, '')
   end
 
   def absolute_path
@@ -172,6 +171,16 @@ module GitFile
   def content
     return @content unless directory?
     self.class.list( path )
+  end
+
+  def deleted?
+    @deleted || false
+  end
+
+  def delete
+    puts "deleting #{absolute_path}"
+    FileUtils.rm_rf( absolute_path )
+    @deleted = true
   end
 
 end
