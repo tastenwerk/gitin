@@ -44,11 +44,22 @@ module Gitin
     # repo.find( 'myfoler/myfile' )
     # => [ Gitin::GitFile ]
     #
-    def find( path )
+    # repo.find
+    # => [ files, on, root, path ]
+    #
+    # repo.find( 'myfolder/*' )
+    # => [ files, within, myfolder ]
+    #
+    def find( p=nil )
       result = []
-      Dir.glob( "#{@path}/**/#{path}") do |file|
-        file = file.sub(@path,'')
-        result << Gitin::GitFile.new( self, filename: File::basename(file), directory: File::dirname(file) )
+      p = p ? "#{@path}/#{p}" : "#{@path}/*"
+      Dir.glob( p ) do |full_filename|
+        file = full_filename.sub(@path,'')
+        if File.directory? full_filename
+          result << Gitin::GitDirectory.new( self, filename: File::basename(file), directory: File::dirname(file) )
+        else
+          result << Gitin::GitFile.new( self, filename: File::basename(file), directory: File::dirname(file) )
+        end
       end
       result
     end

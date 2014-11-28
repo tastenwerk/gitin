@@ -1,6 +1,7 @@
 require "gitin/version"
 require "gitin/repository"
 require "gitin/git_file"
+require "gitin/git_directory"
 
 require 'fileutils'
 require 'git'

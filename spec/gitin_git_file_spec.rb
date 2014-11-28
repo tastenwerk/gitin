@@ -81,6 +81,37 @@ describe Gitin::GitFile do
 
   end
 
+  context "list files" do
+    
+    before(:all) do
+      @repo = clean_create_repo
+      @repo.create("test.txt", "content")
+      @repo.create("test2.txt", "content2")
+      @repo.create("tt/test3.txt", "content")
+    end
+
+    context "root directory" do
+
+      let(:list){ @repo.find }
+
+      it { expect(list.size).to eq(3) }
+
+      it { expect(list.last).to be_a(Gitin::GitDirectory) }
+
+    end
+
+    context "subdirectory" do
+
+      let(:list){ @repo.find( "tt/*" ) }
+
+      it { expect(list.size).to eq(1) }
+
+      it { expect(list.last.filename).to eq("test3.txt") }
+
+    end
+
+  end
+
   context "change file's content" do
 
     # let(:repo){ clean_create_repo }
