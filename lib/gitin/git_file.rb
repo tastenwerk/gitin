@@ -11,6 +11,7 @@ module Gitin
       @repo = repo
       @filename = options[:filename]
       @directory = options[:directory]
+      @content = ''
       if options[:content]
         @content = options[:content]
       elsif File.exists?( absolute_path )
@@ -20,6 +21,10 @@ module Gitin
 
     def path
       File.join( @directory, @filename ).sub(/^\.\//,'')
+    end
+
+    def directory
+      @directory.sub(/^\//,'')
     end
 
     def absolute_path

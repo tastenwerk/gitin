@@ -13,6 +13,10 @@ module Gitin
       @directory = options[:directory]
     end
 
+    def directory
+      @directory.sub(/^\//,'')
+    end
+
     def path
       File.join( @directory, @filename ).sub(/^\.\//,'')
     end

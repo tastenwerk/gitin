@@ -112,6 +112,21 @@ describe Gitin::GitFile do
 
   end
 
+  context "list files recursively" do
+    
+    before(:all) do
+      @repo = clean_create_repo
+      @repo.create("test.txt", "content")
+      @repo.create("test2.txt", "content2")
+      @repo.create("tt/test3.txt", "content")
+    end
+
+    let(:list) { @repo.find :recursive }
+
+    it { expect(list.size).to eq(4) }
+
+  end
+
   context "change file's content" do
 
     let(:repo){ clean_create_repo }

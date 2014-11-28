@@ -52,7 +52,7 @@ module Gitin
     #
     def find( p=nil )
       result = []
-      p = p ? "#{@path}/#{p}" : "#{@path}/*"
+      p = get_option_for_find(p)
       Dir.glob( p ) do |full_filename|
         file = full_filename.sub(@path,'')
         if File.directory? full_filename
@@ -100,6 +100,16 @@ module Gitin
       File.open gitignore, 'w'
       git.add gitignore
       git.commit 'initial commit'
+    end
+
+    def get_option_for_find(p)
+      if p && p.is_a?(Symbol) && p == :recursive
+        "#{@path}/**/*"
+      elsif p
+        "#{@path}/#{p}"
+      else
+        "#{@path}/*"
+      end
     end
 
   end
