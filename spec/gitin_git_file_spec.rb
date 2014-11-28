@@ -114,10 +114,37 @@ describe Gitin::GitFile do
 
   context "change file's content" do
 
-    # let(:repo){ clean_create_repo }
-    #
-    # let(:file){ repo.create("test.txt", "test content") }
-    #
+    let(:repo){ clean_create_repo }
+
+    let(:file){ repo.create("deep/nested/test.txt", "test content") }
+
+    it { expect(file.content).to eq("test content") }
+
+    it { expect(file.clean?).to be false }
+
+    it { expect(file.commit('msg')).to be_a(String) }
+
+  end
+
+  context "delete a file from the repository" do
+
+    before(:all) do
+      @repo = clean_create_repo
+      @repo.create("test.txt", "content")
+      @file = @repo.create("test2.txt", "content2")
+      @repo.create("tt/test3.txt", "content")
+    end
+
+    it { expect( @repo.find.size ).to eq(3) }
+
+    it { expect( @file.delete ).to be true }
+
+    it { expect( @repo.clean? ).to be false }
+
+    it { expect( @repo.commit('msg') ).to be_a(String) }
+
+    it { expect( @repo.find.size ).to eq(2) }
+
   end
 
 end

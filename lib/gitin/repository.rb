@@ -80,6 +80,12 @@ module Gitin
       Gitin::GitFile.new( self, filename: File::basename(path), directory: File::dirname(path), content: content )
     end
 
+    # commit all changes in repository
+    #
+    def commit( msg )
+      git.commit_all msg
+    end
+
     private
 
     def init_git

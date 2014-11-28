@@ -32,6 +32,31 @@ module Gitin
       @repo.git.add absolute_path
     end
 
+    # returns if current file is up to date
+    # with git repository
+    #
+    def clean?
+      @repo.changes.each do |change|
+        return false if change.path == path
+      end
+      true
+    end
+
+    # commits the current file to the repository (ignoring other changes)
+    #
+    def commit(msg)
+      @repo.git.add( path )
+      @repo.git.commit(msg)
+    end
+
+    def delete
+      File.delete( absolute_path )
+      if Dir.glob( File.dirname( absolute_path ) ).size < 1
+        File.open( File.dirname( absolute_path ) + '/.gitkeep', 'w' )
+      end
+      true
+    end
+
     private
 
     def create_directory

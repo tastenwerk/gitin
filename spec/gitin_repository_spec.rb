@@ -72,4 +72,23 @@ describe Gitin::Repository do
 
   end
 
+  context "#commit" do
+
+    before(:all) do
+      @repo = clean_create_repo
+      @repo.create('test.txt', 'content')
+    end
+
+    it { expect( @repo.clean? ).to be false }
+
+    it { expect( @repo.changes.size ).to eq(1) }
+
+    it { expect( @repo.changes.first.path ).to eq('test.txt') }
+
+    it { expect( @repo.commit('msg')).to be_a(String) }
+
+    it { expect( @repo.clean? ).to be true }
+
+  end
+
 end
