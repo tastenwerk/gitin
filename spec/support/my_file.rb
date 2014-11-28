@@ -1,5 +1,4 @@
-require 'git_file'
+require 'gitin'
 
 class MyFile
-  include GitFile
 end

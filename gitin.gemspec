@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'git_file/version'
+require 'gitin/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "git_file"
-  spec.version       = GitFile::VERSION
+  spec.name          = "gitin"
+  spec.version       = Gitin::VERSION
   spec.authors       = ["quaqua"]
   spec.email         = ["quaqua@tastenwerk.com"]
   spec.summary       = %q{Git filestore adapter}

@@ -1,55 +1,22 @@
-require "git_file/version"
+require "gitin/version"
+require "gitin/repository"
+require "gitin/git_file"
 
 require 'fileutils'
 require 'git'
 
-module GitFile
-
-  def self.included(base)
-    attr_accessor :filename, :parent, :size, :directory
-    base.extend ClassMethods
-  end
+module Gitin
 
   module ClassMethods
 
-    def git_file?
+    def gitin?
       true
-    end
-
-    def git_config( key, value=nil )
-      @@g_config ||= {}
-      return @@g_config[key] unless value
-      @@g_config[key] = value
-    end
-
-    def git_root(root_path=nil,force_create=nil)
-      @@root_path ||= nil
-      @@g_config ||= {}
-      return @@root_path unless root_path
-      @@root_path = root_path
-      create_directory(force_create)
-      init_git
-      @@root_path
     end
 
     def create( type, attributes=nil )
       f = new( type, attributes )
       f.save
       f
-    end
-
-    def git
-      @@git
-    end
-
-    def changes
-      arr = []
-      @@git.status.each{ |f| arr << f if f.type =~ /A|D/ }
-      arr
-    end
-
-    def clean?
-      changes.size == 0
     end
   
     def commit( msg )
