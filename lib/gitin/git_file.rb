@@ -1,7 +1,9 @@
 module Gitin
   class GitFile
 
-    attr_accessor :filename, :path, :content
+    include Gitin::GitBase
+
+    attr_accessor :filename, :content
 
     # initializes a new GitFile
     # if no content is given and the file is found in the
@@ -17,24 +19,6 @@ module Gitin
       elsif File.exists?( absolute_path )
         @content = File.open( absolute_path, 'r' ).read
       end
-    end
-
-    def path
-      File.join( @directory, @filename ).sub(/^\.\//,'')
-    end
-
-    def directory
-      @directory.sub(/^\//,'')
-    end
-
-    def absolute_path
-      File.join( @repo.path, path )
-    end
-
-    def save
-      create_directory
-      File.open(absolute_path, 'w'){ |f| f.write content }
-      @repo.git.add absolute_path
     end
 
     # returns if current file is up to date
@@ -60,13 +44,6 @@ module Gitin
         File.open( File.dirname( absolute_path ) + '/.gitkeep', 'w' )
       end
       true
-    end
-
-    private
-
-    def create_directory
-      return if File.exists?( File.dirname(absolute_path) )
-      FileUtils.mkdir_p( File.dirname(absolute_path) )
     end
 
   end
